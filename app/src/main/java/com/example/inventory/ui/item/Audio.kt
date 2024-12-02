@@ -1,9 +1,11 @@
 package com.example.inventory.ui.item
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -23,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import java.io.File
 
 @Composable
@@ -91,12 +94,44 @@ fun AudioRecorderButton() {
         }
     }
 
+    // Lanzador para solicitar el permiso de grabación de audio
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         hasPermission = isGranted
         if (isGranted && !isRecording) {
             startRecording()
+        } else {
+            Toast.makeText(context, "Permiso de grabación denegado", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Lanzador para solicitar el permiso de almacenamiento si es necesario (solo si guardas archivos fuera del caché)
+    val requestStoragePermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Aquí puedes agregar la lógica si es necesario para el almacenamiento
+        } else {
+            Toast.makeText(context, "Permiso de almacenamiento denegado", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Verificación de permisos de grabación
+    LaunchedEffect(Unit) {
+        // Verificar si ya tenemos el permiso de grabación
+        hasPermission = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+
+        // Si necesitas permisos de almacenamiento
+        if (ContextCompat.checkSelfPermission(
+                context, Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            // Si tienes el permiso para escribir, puedes guardar los archivos normalmente
+        } else {
+            requestStoragePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
     }
 

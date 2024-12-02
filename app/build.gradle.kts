@@ -65,6 +65,7 @@ dependencies {
     // Room
     implementation("androidx.room:room-runtime:${rootProject.extra["room_version"]}")
     implementation("com.google.firebase:firebase-crashlytics-buildtools:3.0.2")
+    implementation("androidx.core:core:1.9.0")
     ksp("androidx.room:room-compiler:${rootProject.extra["room_version"]}")
     implementation("androidx.room:room-ktx:${rootProject.extra["room_version"]}")
 
@@ -80,6 +81,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core-android:1.5.4")
 
 
+    implementation ("com.google.accompanist:accompanist-permissions:0.36.0")
 
 
 }
