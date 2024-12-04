@@ -8,7 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.inventory.ui.item.NoteEditScreen
 import com.example.inventory.ui.item.NoteEntryScreen
-import com.example.inventory.ui.notes.NoteDetailsScreen
+import com.example.inventory.ui.item.NoteDetailsScreen // Asegúrate de importar esta clase
 import com.example.inventory.ui.notes.NotesScreen
 
 @Composable

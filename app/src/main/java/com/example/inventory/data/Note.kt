@@ -23,6 +23,7 @@ data class Note(
 
 @Dao
 interface NoteDao {
+
     @Insert
     suspend fun insert(note: Note)
 
@@ -32,9 +33,9 @@ interface NoteDao {
     @Delete
     suspend fun delete(note: Note)
 
-    @Query("SELECT * from notes WHERE id = :id")
-    fun getNoteById(id: Int): Flow<Note?>
+    @Query("SELECT * FROM notes WHERE id = :id")
+    fun getNoteById(id: Int): Flow<Note?>  // Aquí obtenemos la nota junto con las URIs multimedia
 
-    @Query("SELECT * from notes ORDER BY title ASC")
+    @Query("SELECT * FROM notes ORDER BY title ASC")
     fun getAllNotes(): Flow<List<Note>>
 }

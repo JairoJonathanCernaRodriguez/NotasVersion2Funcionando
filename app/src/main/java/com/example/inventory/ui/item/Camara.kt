@@ -160,6 +160,12 @@ fun CameraButton() {
     }
 }
 
+// Función para obtener el tipo MIME de un archivo dado su URI
+fun getMimeType(context: Context, uri: Uri): String? {
+    return context.contentResolver.getType(uri)
+}
+
+// Función para crear una URI interna para el video
 fun createInternalVideoUri(context: Context): Uri? {
     val videoDir = File(context.filesDir, "videos")
     if (!videoDir.exists()) {
@@ -177,8 +183,3 @@ fun createInternalVideoUri(context: Context): Uri? {
         null // Devuelve nulo si hay un error
     }
 }
-
-
-
-
-

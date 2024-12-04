@@ -3,6 +3,8 @@ package com.example.inventory.ui.item
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.net.Uri
+import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -11,21 +13,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,11 +23,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.inventory.InventoryTopAppBar
+import com.example.inventory.R
 import com.example.inventory.ui.AppViewModelProvider
+import com.example.inventory.ui.notes.NoteDetailsViewModel
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,16 +39,30 @@ fun NoteEntryScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var showMultimediaPicker by remember { mutableStateOf(false) }
+    var multimediaUris by remember { mutableStateOf<List<String>>(listOf()) }
     var showCameraDialog by remember { mutableStateOf(false) }
     var showAudioRecorderDialog by remember { mutableStateOf(false) }
-    var multimediaUris by remember { mutableStateOf<List<String>>(listOf()) }
 
-    var isReminderView by remember { mutableStateOf(false) } // Estado del switch
+    // Registrar actividad para elegir imagen
+    val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            multimediaUris = multimediaUris + it.toString()
+            viewModel.updateMultimediaUris(multimediaUris)
+        }
+    }
+
+    // Registrar actividad para elegir archivo
+    val pickDocument = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        uri?.let {
+            multimediaUris = multimediaUris + it.toString()
+            viewModel.updateMultimediaUris(multimediaUris)
+        }
+    }
+
     // Estado para capturas de cámara y video
-    val context = LocalContext.current
     var capturedMediaUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Launcher para tomar fotos
+    // Launcher para tomar fotos con la cámara
     val takePictureLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success && capturedMediaUri != null) {
             multimediaUris = multimediaUris + capturedMediaUri.toString()
@@ -67,7 +70,7 @@ fun NoteEntryScreen(
         }
     }
 
-    // Launcher para capturar video
+    // Launcher para capturar video con la cámara
     val captureVideoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
         if (success && capturedMediaUri != null) {
             multimediaUris = multimediaUris + capturedMediaUri.toString()
@@ -75,6 +78,11 @@ fun NoteEntryScreen(
         }
     }
 
+    // Contexto local para acceso a los recursos
+    val context = LocalContext.current
+
+    // Estado para seleccionar entre Notas o Recordatorios
+    var isReminderView by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -91,7 +99,7 @@ fun NoteEntryScreen(
                     .verticalScroll(rememberScrollState())
             ) {
 
-                // Botón deslizante (Switch)
+                // Switch para cambiar entre Recordatorios y Notas
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -113,9 +121,7 @@ fun NoteEntryScreen(
                     )
                 }
 
-
-
-                // Title Input
+                // Título del input
                 OutlinedTextField(
                     value = noteUiState.noteDetails?.title.orEmpty(),
                     onValueChange = { viewModel.updateTitle(it) },
@@ -125,7 +131,7 @@ fun NoteEntryScreen(
                         .fillMaxWidth()
                 )
 
-                // Content Input
+                // Contenido del input
                 OutlinedTextField(
                     value = noteUiState.noteDetails?.content.orEmpty(),
                     onValueChange = { viewModel.updateContent(it) },
@@ -169,37 +175,31 @@ fun NoteEntryScreen(
                         modifier = Modifier.padding(start = 16.dp)
                     )
                 } else {
-                    // Botón de cámara (Solo en "Notas")
+                    // Botón de selección de imagen
                     Button(
-                        onClick = {
-                            createMediaUri(context, "image")?.let { uri ->
-                                capturedMediaUri = uri
-                                takePictureLauncher.launch(uri) // Solo se lanza si uri no es nulo
-                            } ?: run {
-                                // Manejo de error en caso de que no se pueda crear el URI
-                                // Por ejemplo, puedes mostrar un mensaje de error al usuario
-                            }
-                        },
+                        onClick = { pickImage.launch("image/*") },
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        Text("Take Picture")
-                    }
-                    // Botón de video (Solo en "Notas")
-                    Button(
-                        onClick = {
-                            createMediaUri(context, "video")?.let { uri ->
-                                capturedMediaUri = uri
-                                captureVideoLauncher.launch(uri) // Solo se lanza si uri no es nulo
-                            } ?: run {
-                                // Manejo de error en caso de que no se pueda crear el URI
-                            }
-                        },
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text("Record Video")
+                        Text("Select Image")
                     }
 
-                    // Botón de grabar audio (Solo en "Notas")
+                    // Botón de selección de documento
+                    Button(
+                        onClick = { pickDocument.launch(arrayOf("/")) },
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text("Select Document")
+                    }
+
+                    // Botón para mostrar el diálogo de cámara
+                    Button(
+                        onClick = { capturedMediaUri = createMediaUri(context, "image") },
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text("Open Camera")
+                    }
+
+                    // Botón para mostrar el diálogo de grabadora de audio
                     Button(
                         onClick = { showAudioRecorderDialog = true },
                         modifier = Modifier.padding(16.dp)
@@ -207,14 +207,7 @@ fun NoteEntryScreen(
                         Text("Record Audio")
                     }
 
-                    // Multimedia (Solo en "Notas")
-                    Button(
-                        onClick = { showMultimediaPicker = true },
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text("Add Multimedia")
-                    }
-
+                    // Multimedia (solo en "Notas")
                     LazyColumn(
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
@@ -233,8 +226,7 @@ fun NoteEntryScreen(
                     }
                 }
 
-
-                // Save Button
+                // Botón para guardar la nota
                 Button(
                     onClick = {
                         viewModel.saveNote()
@@ -285,55 +277,6 @@ fun NoteEntryScreen(
             true
         ).show()
     }
-
-    // Multimedia Picker Dialog
-    if (showMultimediaPicker) {
-        AlertDialog(
-            onDismissRequest = { showMultimediaPicker = false },
-            title = { Text("Select Multimedia") },
-            text = {
-                MultimediaPicker { selectedUris ->
-                    multimediaUris = selectedUris
-                    viewModel.updateMultimediaUris(selectedUris)
-                }
-            },
-            confirmButton = {
-                Button(onClick = { showMultimediaPicker = false }) {
-                    Text("Close")
-                }
-            }
-        )
-    }
-
-    // Camera Dialog
-    if (showCameraDialog) {
-        AlertDialog(
-            onDismissRequest = { showCameraDialog = false },
-            title = { Text("Camera") },
-            text = {
-                CameraButton()
-            },
-            confirmButton = {
-                Button(onClick = { showCameraDialog = false }) {
-                    Text("Close")
-                }
-            }
-        )
-    }
-
-    // Audio Recorder Dialog
-    if (showAudioRecorderDialog) {
-        AlertDialog(
-            onDismissRequest = { showAudioRecorderDialog = false },
-            title = { Text("Audio Recorder") },
-            text = {
-                AudioRecorderButton()
-            },
-            confirmButton = {
-                Button(onClick = { showAudioRecorderDialog = false }) {
-                    Text("Close")
-                }
-            }
-        )
-    }
 }
+
+

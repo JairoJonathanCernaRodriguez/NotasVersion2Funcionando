@@ -24,6 +24,7 @@ class NoteDetailsViewModel(
         loadNote()
     }
 
+    // Cargar la nota junto con sus URIs multimedia
     private fun loadNote() {
         viewModelScope.launch {
             notesRepository.getNoteStream(noteId).collect { note ->
@@ -32,6 +33,7 @@ class NoteDetailsViewModel(
         }
     }
 
+    // Eliminar una nota
     fun deleteNote() {
         _noteDetails.value?.let { note ->
             viewModelScope.launch {

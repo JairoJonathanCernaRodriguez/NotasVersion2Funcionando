@@ -1,3 +1,4 @@
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -29,24 +30,30 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
+
     buildFeatures {
         compose = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.4"
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
     namespace = "com.example.inventory"
 }
 
@@ -75,15 +82,27 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
 
+    // Image loading
     implementation("io.coil-kt:coil-compose:2.4.0")
+
+    // Gson for JSON parsing
     implementation ("com.google.code.gson:gson:2.10.1")
 
+    // ExoPlayer for media playback
     implementation ("com.google.android.exoplayer:exoplayer:2.15.1")
-    implementation("io.coil-kt:coil-compose:2.5.0")
-    implementation("androidx.compose.material:material-icons-core-android:1.5.4")
 
-
+    // Accompanist Permissions for managing permissions
     implementation ("com.google.accompanist:accompanist-permissions:0.36.0")
 
+    // DocumentFile for managing documents and storage
+    implementation("androidx.documentfile:documentfile:1.0.1")
+
+    // Coil version upgrade (optional)
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
+    // Material Icons Core for Compose (optional)
+    implementation("androidx.compose.material:material-icons-core-android:1.5.4")
+
+    implementation("androidx.activity:activity-ktx:1.9.0")
 
 }

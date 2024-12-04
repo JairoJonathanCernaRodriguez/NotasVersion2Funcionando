@@ -1,29 +1,37 @@
-package com.example.inventory.ui.notes
+package com.example.inventory.ui.item
 
+import android.content.Context
+import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 import com.example.inventory.InventoryTopAppBar
 import com.example.inventory.R
 import com.example.inventory.data.Note
 import com.example.inventory.ui.AppViewModelProvider
+import com.example.inventory.ui.notes.NoteDetailsViewModel
+import com.example.inventory.ui.item.AudioPlayer
+import com.example.inventory.ui.item.VideoPlayer
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.text.style.LineHeightStyle
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+
+// Obtener MIME type de URI - Esta lógica se mueve a la UI
+fun getMimeType(uri: Uri, context: Context): String? {
+    val contentResolver = context.contentResolver
+    return contentResolver.getType(uri)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +42,10 @@ fun NoteDetailsScreen(
     modifier: Modifier = Modifier,
     viewModel: NoteDetailsViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    // Observa la nota a través del `StateFlow`
+    // Acceder al Context desde la composable
+    val context = LocalContext.current
+
+    // Observa la nota con multimedia a través del `StateFlow`
     val note by viewModel.noteDetails.collectAsState()
     var deleteConfirmationRequired = remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
@@ -63,23 +74,54 @@ fun NoteDetailsScreen(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-            ) { Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
             ) {
-                // Mostrar detalles de la nota
-                note?.let {
-                    NoteDetails(
-                        note = it,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    // Mostrar detalles de la nota
+                    note?.let {
+                        NoteDetails(
+                            note = it,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
 
-                // Espaciado entre la nota y el botón de eliminar
-                Spacer(modifier = Modifier.height(16.dp))
+                    // Espaciado entre la nota y el botón de eliminar
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                OutlinedButton(
+                    // Mostrar multimedia
+                    note?.multimediaUris?.let { multimediaList ->
+                        LazyColumn(modifier = Modifier.height(150.dp)) {
+                            items(multimediaList) { uri ->
+                                val mimeType = getMimeType(Uri.parse(uri), context) // Usar el Context aquí
+                                when {
+                                    mimeType?.startsWith("image/") == true -> {
+                                        Image(
+                                            painter = rememberAsyncImagePainter(model = Uri.parse(uri)),
+                                            contentDescription = "Imagen multimedia",
+                                            modifier = Modifier
+                                                .width(100.dp)
+                                                .height(150.dp)
+                                        )
+                                    }
+                                    mimeType?.startsWith("audio/") == true -> {
+                                        AudioPlayer(audioUri = Uri.parse(uri))
+                                    }
+                                    mimeType?.startsWith("video/") == true -> {
+                                        VideoPlayer(videoUri = Uri.parse(uri), modifier = Modifier.height(200.dp))
+                                    }
+                                    else -> {
+                                        Text("Formato no soportado")
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Botón de eliminar
+                    OutlinedButton(
                         onClick = { deleteConfirmationRequired.value = true },
                         shape = MaterialTheme.shapes.small,
                         modifier = Modifier
@@ -88,13 +130,12 @@ fun NoteDetailsScreen(
                     ) {
                         Text(stringResource(R.string.delete))
                     }
-                } ?: Text(
-                    text = stringResource(R.string.note_not_found),
-                    modifier = Modifier.padding(16.dp)
-                )
+                }
             }
         }
     )
+
+    // Confirmación de eliminación
     if (deleteConfirmationRequired.value) {
         DeleteConfirmationDialog(
             onDeleteConfirm = {
@@ -153,4 +194,3 @@ fun NoteDetails(
         )
     }
 }
-
