@@ -195,7 +195,8 @@ private fun NoteItem(
             ) {
                 items(note.multimediaUris) { uri ->
                     when {
-                        uri.endsWith(".jpg") || uri.endsWith(".png") -> {
+                        uri.endsWith(".jpg") || uri.endsWith(".png")
+                                || uri.endsWith(".jpeg")-> {
                             Image(
                                 painter = rememberAsyncImagePainter(model = uri),
                                 contentDescription = null,
@@ -209,10 +210,10 @@ private fun NoteItem(
                                 modifier = Modifier
                                     .padding(4.dp)
                             ) {
-                                Text("Reproducir")
+                                Text("Reproducir Audio")
                             }
                         }
-                        uri.endsWith(".mp4") -> {
+                        uri.endsWith(".mp4") || uri.endsWith(".mkv")-> {
                             Button(
                                 onClick = { selectedVideoUri = Uri.parse(uri) },
                                 modifier = Modifier.padding(4.dp)

@@ -67,6 +67,7 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics-buildtools:3.0.2")
     implementation("androidx.core:core:1.9.0")
     implementation("androidx.benchmark:benchmark-macro:1.3.3")
+    implementation("androidx.activity:activity:1.8.1")
     ksp("androidx.room:room-compiler:${rootProject.extra["room_version"]}")
     implementation("androidx.room:room-ktx:${rootProject.extra["room_version"]}")
 

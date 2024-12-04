@@ -42,8 +42,6 @@ fun CameraButton() {
     var imageBitmaps by remember { mutableStateOf<List<Bitmap>>(listOf()) }
     var videoUris by remember { mutableStateOf<List<Uri>>(listOf()) }
     var selectedBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var selectedVideoUri by remember { mutableStateOf<Uri?>(null) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
     var hasCameraPermission by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
@@ -64,13 +62,12 @@ fun CameraButton() {
     val openCameraForVideo = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CaptureVideo()
     ) { isSuccessful ->
-        // Solo agrega el video si la grabación fue exitosa
-        videoUri.value?.let {
-            if (isSuccessful) {
+        if (isSuccessful) {
+            videoUri.value?.let {
                 videoUris = videoUris + it
-            } else {
-                Toast.makeText(context, "Error al grabar el video", Toast.LENGTH_SHORT).show()
             }
+        } else {
+            Toast.makeText(context, "Error al grabar el video", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -112,13 +109,13 @@ fun CameraButton() {
                         Manifest.permission.CAMERA
                     ) == PackageManager.PERMISSION_GRANTED
                 ) {
-                    // Crear un archivo URI para guardar el video
-                    videoUri.value = createVideoUri(context)
-
-                    // Solo lanzar la cámara para video si videoUri.value no es nulo
-                    videoUri.value?.let { uri ->
-                        // Verificamos si el URI es válido antes de lanzar la cámara
+                    // Crear URI para el video
+                    val uri = createInternalVideoUri(context)
+                    if (uri != null) {
+                        videoUri.value = uri
                         openCameraForVideo.launch(uri)
+                    } else {
+                        Toast.makeText(context, "Error al crear el archivo para el video", Toast.LENGTH_SHORT).show()
                     }
                 } else {
                     requestPermissionLauncher.launch(Manifest.permission.CAMERA)
@@ -140,7 +137,6 @@ fun CameraButton() {
                         .height(150.dp)
                         .clickable {
                             selectedBitmap = bitmap
-                            showDeleteDialog = true
                         }
                 )
             }
@@ -164,25 +160,25 @@ fun CameraButton() {
     }
 }
 
-// Función para crear la URI del video
-fun createVideoUri(context: Context): Uri {
-    val videoDir = File(context.filesDir, "videos") // Almacenar videos en el directorio de archivos internos
+fun createInternalVideoUri(context: Context): Uri? {
+    val videoDir = File(context.filesDir, "videos")
     if (!videoDir.exists()) {
         videoDir.mkdirs()
     }
     val videoFile = File(videoDir, "video_${System.currentTimeMillis()}.mp4")
-    // Verifica si el archivo se creó correctamente antes de devolver la URI
-    return if (videoFile.exists()) {
+    return try {
         FileProvider.getUriForFile(
             context,
             "${context.packageName}.fileprovider",
             videoFile
         )
-    } else {
-        // Si no se pudo crear el archivo, devuelve un Uri nulo
-        Uri.EMPTY
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null // Devuelve nulo si hay un error
     }
-
 }
+
+
+
 
 

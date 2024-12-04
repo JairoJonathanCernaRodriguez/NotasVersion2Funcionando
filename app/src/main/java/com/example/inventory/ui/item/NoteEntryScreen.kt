@@ -3,6 +3,8 @@ package com.example.inventory.ui.item
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -51,7 +53,28 @@ fun NoteEntryScreen(
     var showCameraDialog by remember { mutableStateOf(false) }
     var showAudioRecorderDialog by remember { mutableStateOf(false) }
     var multimediaUris by remember { mutableStateOf<List<String>>(listOf()) }
+
     var isReminderView by remember { mutableStateOf(false) } // Estado del switch
+    // Estado para capturas de cámara y video
+    val context = LocalContext.current
+    var capturedMediaUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Launcher para tomar fotos
+    val takePictureLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success && capturedMediaUri != null) {
+            multimediaUris = multimediaUris + capturedMediaUri.toString()
+            viewModel.updateMultimediaUris(multimediaUris)
+        }
+    }
+
+    // Launcher para capturar video
+    val captureVideoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
+        if (success && capturedMediaUri != null) {
+            multimediaUris = multimediaUris + capturedMediaUri.toString()
+            viewModel.updateMultimediaUris(multimediaUris)
+        }
+    }
+
 
     Scaffold(
         topBar = {
@@ -148,10 +171,32 @@ fun NoteEntryScreen(
                 } else {
                     // Botón de cámara (Solo en "Notas")
                     Button(
-                        onClick = { showCameraDialog = true },
+                        onClick = {
+                            createMediaUri(context, "image")?.let { uri ->
+                                capturedMediaUri = uri
+                                takePictureLauncher.launch(uri) // Solo se lanza si uri no es nulo
+                            } ?: run {
+                                // Manejo de error en caso de que no se pueda crear el URI
+                                // Por ejemplo, puedes mostrar un mensaje de error al usuario
+                            }
+                        },
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        Text("Open Camera")
+                        Text("Take Picture")
+                    }
+                    // Botón de video (Solo en "Notas")
+                    Button(
+                        onClick = {
+                            createMediaUri(context, "video")?.let { uri ->
+                                capturedMediaUri = uri
+                                captureVideoLauncher.launch(uri) // Solo se lanza si uri no es nulo
+                            } ?: run {
+                                // Manejo de error en caso de que no se pueda crear el URI
+                            }
+                        },
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text("Record Video")
                     }
 
                     // Botón de grabar audio (Solo en "Notas")
