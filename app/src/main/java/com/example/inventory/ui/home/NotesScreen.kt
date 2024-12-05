@@ -30,6 +30,9 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.inventory.R
 import com.example.inventory.data.Note
 import com.example.inventory.ui.AppViewModelProvider
+import com.example.inventory.ui.item.AudioPlayer
+import com.example.inventory.ui.item.VideoPlayer
+import com.example.inventory.ui.item.getMimeType
 import com.example.inventory.ui.navigation.NavigationDestination
 import java.text.SimpleDateFormat
 import java.util.*
@@ -49,6 +52,7 @@ fun NotesScreen(
 ) {
     val notesUiState by viewModel.notesUiState.collectAsState()
     var isReminderView by remember { mutableStateOf(false) } // Controla el estado del Switch
+
 
     Scaffold(
         topBar = {
@@ -111,6 +115,7 @@ private fun NotesList(
     }
 }
 
+
 @Composable
 fun PlaySavedVideo(videoUri: Uri, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
@@ -155,6 +160,8 @@ private fun NoteItem(
     val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     var selectedVideoUri by remember { mutableStateOf<Uri?>(null) }
+    // Acceder al Context desde la composable
+    val context = LocalContext.current
 
     Card(
         modifier = Modifier
@@ -194,32 +201,22 @@ private fun NoteItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(note.multimediaUris) { uri ->
+                    val mimeType = getMimeType(Uri.parse(uri), context) // Usar el Context aquí
                     when {
-                        uri.endsWith(".jpg") || uri.endsWith(".png")
-                                || uri.endsWith(".jpeg")-> {
+                        mimeType?.startsWith("image/") == true -> {
                             Image(
-                                painter = rememberAsyncImagePainter(model = uri),
-                                contentDescription = null,
-                                modifier = Modifier.size(100.dp)
+                                painter = rememberAsyncImagePainter(model = Uri.parse(uri)),
+                                contentDescription = "Imagen multimedia",
+                                modifier = Modifier
+                                    .width(100.dp)
+                                    .height(150.dp)
                             )
                         }
-                        uri.endsWith(".mp3") || uri.endsWith(".wav") -> {
-                            // Mostrar botón para reproducir audio
-                            Button(
-                                onClick = { /* Lógica para reproducir audio */ },
-                                modifier = Modifier
-                                    .padding(4.dp)
-                            ) {
-                                Text("Reproducir Audio")
-                            }
+                        mimeType?.startsWith("audio/") == true -> {
+                            AudioPlayer(audioUri = Uri.parse(uri))
                         }
-                        uri.endsWith(".mp4") || uri.endsWith(".mkv")-> {
-                            Button(
-                                onClick = { selectedVideoUri = Uri.parse(uri) },
-                                modifier = Modifier.padding(4.dp)
-                            ) {
-                                Text("Reproducir Video")
-                            }
+                        mimeType?.startsWith("video/") == true -> {
+                            VideoPlayer(videoUri = Uri.parse(uri), modifier = Modifier.height(200.dp))
                         }
                         else -> {
                             Text("Formato no soportado")

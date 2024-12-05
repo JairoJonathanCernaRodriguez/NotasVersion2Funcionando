@@ -28,6 +28,8 @@ import com.example.inventory.ui.AppViewModelProvider
 import com.example.inventory.ui.notes.NoteDetailsViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import java.io.File
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,6 +85,7 @@ fun NoteEntryScreen(
 
     // Estado para seleccionar entre Notas o Recordatorios
     var isReminderView by remember { mutableStateOf(false) }
+
 
     Scaffold(
         topBar = {
@@ -182,6 +185,13 @@ fun NoteEntryScreen(
                     ) {
                         Text("Select Image")
                     }
+                    // Botón de selección de video
+                    Button(
+                        onClick = { pickImage.launch("video/*") },
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text("Select Video")
+                    }
 
                     // Botón de selección de documento
                     Button(
@@ -191,13 +201,63 @@ fun NoteEntryScreen(
                         Text("Select Document")
                     }
 
-                    // Botón para mostrar el diálogo de cámara
+                    // Botón para tomar foto
                     Button(
-                        onClick = { capturedMediaUri = createMediaUri(context, "image") },
+                        onClick = {
+                            // Genera un archivo temporal
+                            val imageFile = File.createTempFile(
+                                "temp_photo_${System.currentTimeMillis()}",
+                                ".jpg",
+                                context.cacheDir
+                            )
+
+                            // Obtiene el URI del archivo
+                            val tempUri = androidx.core.content.FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                imageFile
+                            )
+
+                            // Asigna el URI a la propiedad
+                            capturedMediaUri = tempUri
+
+                            // Lanza el intent con el URI almacenado
+                            takePictureLauncher.launch(tempUri)
+                        },
                         modifier = Modifier.padding(16.dp)
                     ) {
                         Text("Open Camera")
                     }
+                    // Botón para grabar video
+                    Button(
+                        onClick = {
+                            // Genera un archivo temporal
+                            val videoFile = File.createTempFile(
+                                "temp_video_${System.currentTimeMillis()}",
+                                ".mp4",
+                                context.cacheDir
+                            )
+
+                            // Obtiene el URI del archivo
+                            val tempUri = androidx.core.content.FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                videoFile
+                            )
+
+                            // Asigna el URI a la propiedad
+                            capturedMediaUri = tempUri
+
+                            // Lanza el intent con el URI almacenado
+                            captureVideoLauncher.launch(tempUri)
+                        },
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text("Capture Video")
+                    }
+
+
+
 
                     // Botón para mostrar el diálogo de grabadora de audio
                     Button(
@@ -276,6 +336,35 @@ fun NoteEntryScreen(
             calendar.get(Calendar.MINUTE),
             true
         ).show()
+    }
+    if (showCameraDialog) {
+        AlertDialog(
+            onDismissRequest = { showCameraDialog = false },
+            title = { Text("Camera") },
+            text = {
+                CameraButton()
+            },
+            confirmButton = {
+                Button(onClick = { showCameraDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
+
+    if (showAudioRecorderDialog) {
+        AlertDialog(
+            onDismissRequest = { showAudioRecorderDialog = false },
+            title = { Text("Audio Recorder") },
+            text = {
+                AudioRecorderButton()
+            },
+            confirmButton = {
+                Button(onClick = { showAudioRecorderDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
     }
 }
 
