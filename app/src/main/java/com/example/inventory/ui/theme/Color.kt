@@ -17,7 +17,7 @@ package com.example.inventory.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val md_theme_light_primary = Color(0xFF6B3DD4)
+val md_theme_light_primary = Color(0xFF03A9F4)
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)
 val md_theme_light_primaryContainer = Color(0xFFE9DDFF)
 val md_theme_light_onPrimaryContainer = Color(0xFF22005D)
@@ -47,8 +47,8 @@ val md_theme_light_surfaceTint = Color(0xFF6B3DD4)
 val md_theme_light_outlineVariant = Color(0xFFCAC4CF)
 val md_theme_light_scrim = Color(0xFF000000)
 
-val md_theme_dark_primary = Color(0xFFCFBCFF)
-val md_theme_dark_onPrimary = Color(0xFF3A0092)
+val md_theme_dark_primary = Color(0xFFFF5722)
+val md_theme_dark_onPrimary = Color(0xFFEEF1F3)
 val md_theme_dark_primaryContainer = Color(0xFF531BBC)
 val md_theme_dark_onPrimaryContainer = Color(0xFFE9DDFF)
 val md_theme_dark_secondary = Color(0xFFCBC2DB)

@@ -53,14 +53,6 @@ fun NoteEntryScreen(
         }
     }
 
-    // Registrar actividad para elegir archivo
-    val pickDocument = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        uri?.let {
-            multimediaUris = multimediaUris + it.toString()
-            viewModel.updateMultimediaUris(multimediaUris)
-        }
-    }
-
     // Estado para capturas de cámara y video
     var capturedMediaUri by remember { mutableStateOf<Uri?>(null) }
 
@@ -80,12 +72,8 @@ fun NoteEntryScreen(
         }
     }
 
-    // Contexto local para acceso a los recursos
     val context = LocalContext.current
-
-    // Estado para seleccionar entre Notas o Recordatorios
     var isReminderView by remember { mutableStateOf(false) }
-
 
     Scaffold(
         topBar = {
@@ -101,7 +89,6 @@ fun NoteEntryScreen(
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
             ) {
-
                 // Switch para cambiar entre Recordatorios y Notas
                 Row(
                     modifier = Modifier
@@ -146,7 +133,6 @@ fun NoteEntryScreen(
 
                 // Mostrar campos adicionales si está en "Recordatorios"
                 if (isReminderView) {
-                    // Seleccionar Fecha
                     Button(
                         onClick = { showDatePicker = true },
                         modifier = Modifier.padding(16.dp)
@@ -162,7 +148,6 @@ fun NoteEntryScreen(
                         modifier = Modifier.padding(start = 16.dp)
                     )
 
-                    // Seleccionar Hora
                     Button(
                         onClick = { showTimePicker = true },
                         modifier = Modifier.padding(16.dp)
@@ -178,110 +163,110 @@ fun NoteEntryScreen(
                         modifier = Modifier.padding(start = 16.dp)
                     )
                 } else {
-                    // Botón de selección de imagen
-                    Button(
-                        onClick = { pickImage.launch("image/*") },
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text("Select Image")
-                    }
-                    // Botón de selección de video
-                    Button(
-                        onClick = { pickImage.launch("video/*") },
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text("Select Video")
-                    }
-
-                    // Botón de selección de documento
-                    Button(
-                        onClick = { pickDocument.launch(arrayOf("/")) },
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text("Select Document")
-                    }
-
-                    // Botón para tomar foto
-                    Button(
-                        onClick = {
-                            // Genera un archivo temporal
-                            val imageFile = File.createTempFile(
-                                "temp_photo_${System.currentTimeMillis()}",
-                                ".jpg",
-                                context.cacheDir
-                            )
-
-                            // Obtiene el URI del archivo
-                            val tempUri = androidx.core.content.FileProvider.getUriForFile(
-                                context,
-                                "${context.packageName}.fileprovider",
-                                imageFile
-                            )
-
-                            // Asigna el URI a la propiedad
-                            capturedMediaUri = tempUri
-
-                            // Lanza el intent con el URI almacenado
-                            takePictureLauncher.launch(tempUri)
-                        },
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text("Open Camera")
-                    }
-                    // Botón para grabar video
-                    Button(
-                        onClick = {
-                            // Genera un archivo temporal
-                            val videoFile = File.createTempFile(
-                                "temp_video_${System.currentTimeMillis()}",
-                                ".mp4",
-                                context.cacheDir
-                            )
-
-                            // Obtiene el URI del archivo
-                            val tempUri = androidx.core.content.FileProvider.getUriForFile(
-                                context,
-                                "${context.packageName}.fileprovider",
-                                videoFile
-                            )
-
-                            // Asigna el URI a la propiedad
-                            capturedMediaUri = tempUri
-
-                            // Lanza el intent con el URI almacenado
-                            captureVideoLauncher.launch(tempUri)
-                        },
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text("Capture Video")
-                    }
-
-
-
-
-                    // Botón para mostrar el diálogo de grabadora de audio
-                    Button(
-                        onClick = { showAudioRecorderDialog = true },
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text("Record Audio")
-                    }
-
-                    // Multimedia (solo en "Notas")
-                    LazyColumn(
+                    // Botones organizados en filas
+                    Row(
                         modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .height(150.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        items(multimediaUris) { uri ->
-                            Image(
-                                painter = rememberAsyncImagePainter(model = Uri.parse(uri)),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .width(100.dp)
-                                    .height(150.dp)
-                            )
+                        Button(
+                            onClick = { pickImage.launch("image/*") },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Select Image")
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Button(
+                            onClick = { pickImage.launch("video/*") },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Select Video")
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Button(
+                            onClick = {
+                                val imageFile = File.createTempFile(
+                                    "temp_photo_${System.currentTimeMillis()}",
+                                    ".jpg",
+                                    context.cacheDir
+                                )
+                                val tempUri = androidx.core.content.FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.fileprovider",
+                                    imageFile
+                                )
+                                capturedMediaUri = tempUri
+                                takePictureLauncher.launch(tempUri)
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Open Camera")
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Button(
+                            onClick = {
+                                val videoFile = File.createTempFile(
+                                    "temp_video_${System.currentTimeMillis()}",
+                                    ".mp4",
+                                    context.cacheDir
+                                )
+                                val tempUri = androidx.core.content.FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.fileprovider",
+                                    videoFile
+                                )
+                                capturedMediaUri = tempUri
+                                captureVideoLauncher.launch(tempUri)
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Capture Video")
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Button(
+                            onClick = { showAudioRecorderDialog = true },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Record Audio")
+                        }
+                    }
+
+                    // Multimedia (si existen elementos en multimediaUris)
+                    if (multimediaUris.isNotEmpty()) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .height(150.dp)
+                        ) {
+                            items(multimediaUris) { uri ->
+                                Image(
+                                    painter = rememberAsyncImagePainter(model = Uri.parse(uri)),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .padding(8.dp)
+                                        .width(100.dp)
+                                        .height(150.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -303,9 +288,7 @@ fun NoteEntryScreen(
         }
     )
 
-    // Date Picker Dialog
     if (showDatePicker) {
-        val context = LocalContext.current
         val calendar = Calendar.getInstance()
         DatePickerDialog(
             context,
@@ -320,9 +303,7 @@ fun NoteEntryScreen(
         ).show()
     }
 
-    // Time Picker Dialog
     if (showTimePicker) {
-        val context = LocalContext.current
         val calendar = Calendar.getInstance()
         TimePickerDialog(
             context,
@@ -337,28 +318,12 @@ fun NoteEntryScreen(
             true
         ).show()
     }
-    if (showCameraDialog) {
-        AlertDialog(
-            onDismissRequest = { showCameraDialog = false },
-            title = { Text("Camera") },
-            text = {
-                CameraButton()
-            },
-            confirmButton = {
-                Button(onClick = { showCameraDialog = false }) {
-                    Text("Close")
-                }
-            }
-        )
-    }
 
     if (showAudioRecorderDialog) {
         AlertDialog(
             onDismissRequest = { showAudioRecorderDialog = false },
             title = { Text("Audio Recorder") },
-            text = {
-                AudioRecorderButton()
-            },
+            text = { AudioRecorderButton() },
             confirmButton = {
                 Button(onClick = { showAudioRecorderDialog = false }) {
                     Text("Close")
@@ -367,5 +332,6 @@ fun NoteEntryScreen(
         )
     }
 }
+
 
 
