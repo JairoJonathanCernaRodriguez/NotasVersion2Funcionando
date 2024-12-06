@@ -51,7 +51,7 @@ fun NotesScreen(
     viewModel: NotesViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val notesUiState by viewModel.notesUiState.collectAsState()
-    var isReminderView by remember { mutableStateOf(false) } // Controla el estado del Switch
+    var isReminderView by remember { mutableStateOf(false) }
 
 
     Scaffold(
@@ -201,7 +201,7 @@ private fun NoteItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(note.multimediaUris) { uri ->
-                    val mimeType = getMimeType(Uri.parse(uri), context) // Usar el Context aquí
+                    val mimeType = getMimeType(Uri.parse(uri), context)
                     when {
                         mimeType?.startsWith("image/") == true -> {
                             Image(

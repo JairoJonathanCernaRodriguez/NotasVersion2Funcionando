@@ -2,8 +2,8 @@ package com.example.inventory.ui.item
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Context
 import android.net.Uri
-import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,22 +13,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import com.example.inventory.Alarma.AlarmItem
+import com.example.inventory.Alarma.AlarmSchedulerImpl
 import com.example.inventory.InventoryTopAppBar
-import com.example.inventory.R
 import com.example.inventory.ui.AppViewModelProvider
-import com.example.inventory.ui.notes.NoteDetailsViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 import java.io.File
+import java.time.LocalDateTime
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,7 +47,7 @@ fun NoteEntryScreen(
     var showCameraDialog by remember { mutableStateOf(false) }
     var showAudioRecorderDialog by remember { mutableStateOf(false) }
 
-    // Registrar actividad para elegir imagen
+    // Elegir imagen
     val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
             multimediaUris = multimediaUris + it.toString()
@@ -56,7 +58,7 @@ fun NoteEntryScreen(
     // Estado para capturas de cámara y video
     var capturedMediaUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Launcher para tomar fotos con la cámara
+    // Tomar fotos con la cámara
     val takePictureLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success && capturedMediaUri != null) {
             multimediaUris = multimediaUris + capturedMediaUri.toString()
@@ -64,7 +66,7 @@ fun NoteEntryScreen(
         }
     }
 
-    // Launcher para capturar video con la cámara
+    // Capturar video con la cámara
     val captureVideoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
         if (success && capturedMediaUri != null) {
             multimediaUris = multimediaUris + capturedMediaUri.toString()
@@ -110,7 +112,23 @@ fun NoteEntryScreen(
                         )
                     )
                 }
+                // Mostrar el botón de notificaciones solo en Recordatorios
+                if (isReminderView) {
+                    Button(onClick = {
+                        val alarmScheduler = AlarmSchedulerImpl(context)
 
+                        val alarmItem = AlarmItem(
+                            alarmTime = LocalDateTime.now().plusMinutes(1),
+                            tiempoMilis = System.currentTimeMillis() + 60000,
+                            message = "Revisa tus Recordatorios: ¡Tienes algo pendiente!"
+                        )
+
+                        alarmScheduler.schedule(alarmItem)
+                        Toast.makeText(context, "Alarma programada", Toast.LENGTH_SHORT).show()
+                    }) {
+                        Text("Programar Notificación")
+                    }
+                }
                 // Título del input
                 OutlinedTextField(
                     value = noteUiState.noteDetails?.title.orEmpty(),
@@ -163,7 +181,7 @@ fun NoteEntryScreen(
                         modifier = Modifier.padding(start = 16.dp)
                     )
                 } else {
-                    // Botones organizados en filas
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -333,5 +351,17 @@ fun NoteEntryScreen(
     }
 }
 
+fun programarAlarma(context: Context) {
+    val alarmScheduler = AlarmSchedulerImpl(context)
+
+    val alarmItem = AlarmItem(
+        alarmTime = LocalDateTime.now().plusMinutes(1), // Configura la hora deseada
+        tiempoMilis = System.currentTimeMillis() + 60000, // Tiempo en milisegundos
+        message = "Revisa tus tareas pendientes."
+    )
+
+    alarmScheduler.schedule(alarmItem)
+    Toast.makeText(context, "Alarma programada", Toast.LENGTH_SHORT).show()
+}
 
 
