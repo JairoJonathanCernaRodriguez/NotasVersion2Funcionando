@@ -80,7 +80,7 @@ fun NoteEntryScreen(
     Scaffold(
         topBar = {
             InventoryTopAppBar(
-                title = if (isReminderView) "Add Reminder" else "Add Note",
+                title = if (isReminderView) "Agregar Recordatorio" else "Agregar Nota",
                 canNavigateBack = true,
                 navigateUp = navigateBack
             )
@@ -133,7 +133,7 @@ fun NoteEntryScreen(
                 OutlinedTextField(
                     value = noteUiState.noteDetails?.title.orEmpty(),
                     onValueChange = { viewModel.updateTitle(it) },
-                    label = { Text("Title") },
+                    label = { Text("Titulo") },
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth()
@@ -143,7 +143,7 @@ fun NoteEntryScreen(
                 OutlinedTextField(
                     value = noteUiState.noteDetails?.content.orEmpty(),
                     onValueChange = { viewModel.updateContent(it) },
-                    label = { Text("Content") },
+                    label = { Text("Contenido") },
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth()
@@ -155,10 +155,10 @@ fun NoteEntryScreen(
                         onClick = { showDatePicker = true },
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        Text("Select Date")
+                        Text("Sleccionar Fecha")
                     }
                     Text(
-                        text = "Selected Date: ${
+                        text = "Sleccionar Fecha: ${
                             noteUiState.noteDetails?.fecha?.takeIf { it != 0L }?.let {
                                 SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it))
                             } ?: "Not selected"
@@ -170,10 +170,10 @@ fun NoteEntryScreen(
                         onClick = { showTimePicker = true },
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        Text("Select Time")
+                        Text("Sleccionar Hora")
                     }
                     Text(
-                        text = "Selected Time: ${
+                        text = "Sleccionar Hora: ${
                             noteUiState.noteDetails?.hora?.takeIf { it != 0L }?.let {
                                 SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it))
                             } ?: "Not selected"
@@ -192,7 +192,7 @@ fun NoteEntryScreen(
                             onClick = { pickImage.launch("image/*") },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Select Image")
+                            Text("Sleccionar Imagen")
                         }
 
                         Spacer(modifier = Modifier.width(16.dp))
@@ -201,7 +201,7 @@ fun NoteEntryScreen(
                             onClick = { pickImage.launch("video/*") },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Select Video")
+                            Text("Sleccionar Video")
                         }
                     }
 
@@ -228,7 +228,7 @@ fun NoteEntryScreen(
                             },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Open Camera")
+                            Text("Abrir Camara")
                         }
 
                         Spacer(modifier = Modifier.width(16.dp))
@@ -250,7 +250,7 @@ fun NoteEntryScreen(
                             },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Capture Video")
+                            Text("Capturar Video")
                         }
                     }
 
@@ -264,7 +264,7 @@ fun NoteEntryScreen(
                             onClick = { showAudioRecorderDialog = true },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Record Audio")
+                            Text("Grabar Audio")
                         }
                     }
 
@@ -300,7 +300,7 @@ fun NoteEntryScreen(
                         .padding(16.dp)
                         .fillMaxWidth()
                 ) {
-                    Text("Save Note")
+                    Text("Guardar")
                 }
             }
         }
@@ -340,11 +340,11 @@ fun NoteEntryScreen(
     if (showAudioRecorderDialog) {
         AlertDialog(
             onDismissRequest = { showAudioRecorderDialog = false },
-            title = { Text("Audio Recorder") },
+            title = { Text("Recordar Audio") },
             text = { AudioRecorderButton() },
             confirmButton = {
                 Button(onClick = { showAudioRecorderDialog = false }) {
-                    Text("Close")
+                    Text("Cerrar")
                 }
             }
         )
